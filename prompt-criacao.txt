@@ -1,0 +1,54 @@
+# PROMPT DE CRIAÇÃO — ORIGEM
+# Projeto: Igrejas-Web-os
+# Objetivo: Extrair o Design System seguindo o RFC‑0017
+
+Execute as seguintes ações:
+
+1. Criar a pasta:
+   /src/design-system/
+
+2. Criar subpastas:
+   /src/design-system/tokens/
+   /src/design-system/components/
+   /src/design-system/layout/
+
+3. Mover para dentro de design-system:
+   - Tokens de design:
+     • Cores
+     • Tipografia
+     • Espaçamentos
+     • Radius
+     • Sombras
+   - Componentes reutilizáveis:
+     • Botões
+     • Inputs
+     • Cards
+     • Dropdowns
+     • Badges
+     • Toggles
+   - Layouts reutilizáveis:
+     • Containers
+     • Headers
+     • Sidebars
+     • Footers
+
+4. Remover dependências de regra de negócio:
+   - Remover textos fixos do domínio
+   - Remover hooks específicos
+   - Remover lógica de negócio
+
+5. Gerar um pacote exportável:
+   - Criar index.ts exportando todos os tokens e componentes
+   - Preparar estrutura para virar biblioteca (npm ou monorepo)
+
+6. Gerar o arquivo final:
+   /dist/design-system-export.zip
+   contendo:
+   - /tokens
+   - /components
+   - /layout
+   - package.json base
+   - README.md
+   - instruções de instalação
+
+Este pacote será importado no {CyberRaffleOS}.

@@ -1,0 +1,49 @@
+# PROMPT DE IMPLEMENTAÇÃO — DESTINO
+# Projeto: CyberRaffleOS
+# Objetivo: Importar e aplicar o Design System extraído do Igrejas-Web-os
+
+Execute as seguintes ações:
+
+1. Copiar o arquivo:
+   design-system-export.zip
+   para a raiz do projeto {CyberRaffleOS}
+
+2. Extrair o conteúdo em:
+   /src/design-system/
+
+3. Instalar dependências do Design System:
+   npm install
+   ou
+   pnpm install
+   ou
+   yarn install
+
+4. Configurar o tema global:
+   - Importar ThemeProvider
+   - Envolver a aplicação com o provider
+
+5. Substituir componentes nativos pelos componentes do Design System:
+   - <button> → <Button />
+   - <input> → <Input />
+   - <div class="card"> → <Card />
+
+6. Ajustar tokens globais:
+   - Cores
+   - Tipografia
+   - Espaçamentos
+   - Radius
+   - Sombras
+
+7. Validar integração:
+   - Testes visuais
+   - Testes funcionais
+   - Testes de responsividade
+
+8. Confirmar conformidade com o RFC‑0017:
+   - Governança
+   - Modularização
+   - SSOT
+   - SemVer
+   - Documentação viva
+
+Após isso, o {CyberRaffleOS} estará oficialmente integrado ao Design System corporativo.
