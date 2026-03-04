@@ -34,8 +34,10 @@ export default function EscolaridadeConfigPage() {
     formData.append("table", TABLE_NAME);
     
     const result = await addSettingAction(formData);
+    
+    // INJEÇÃO FUNCIONAL: Adicionado fallback (|| "") para satisfazer a tipagem estrita do TypeScript no Vercel
     if (result && !result.success) {
-        setError(result.message);
+        setError(result.message || "Ocorreu um erro ao processar a solicitação.");
     } else {
         setNewName("");
         await fetchItems();
