@@ -35,8 +35,15 @@ export default function CargosConfigPage() {
     formData.append("table", TABLE_NAME);
     
     const result = await addSettingAction(formData);
-    if (result && !result.success) setError(result.message);
-    else { setNewName(""); await fetchItems(); }
+    
+    // CORREÇÃO TÉCNICA: Adicionado fallback (|| "") para satisfazer o TypeScript
+    if (result && !result.success) {
+      setError(result.message || "Ocorreu um erro ao processar a solicitação.");
+    } else { 
+      setNewName(""); 
+      await fetchItems(); 
+    }
+    
     setIsSubmitting(false);
   }
 
