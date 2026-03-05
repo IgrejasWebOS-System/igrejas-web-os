@@ -1,9 +1,11 @@
 "use client";
 
-import { Building2, Users, Map, Plus, Search, FilterX, Archive, Edit2, Loader2, RefreshCcw } from "lucide-react";
+import { Building2, Users, Map, Plus, Search, FilterX, Archive, Edit2, Loader2, RefreshCcw, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+// INJEÇÃO FUNCIONAL: Importação do tipo de Role para TypeScript
+import type { AdminRole } from "@/utils/auth-context";
 
 // Interfaces mantidas para tipagem estrita
 interface ProcessedSector {
@@ -16,7 +18,12 @@ interface ProcessedSector {
   };
 }
 
-export default function ChurchesView() {
+// INJEÇÃO FUNCIONAL: Adicionando a prop userRole enviada pelo page.tsx
+interface ChurchesViewProps {
+  userRole?: string;
+}
+
+export default function ChurchesView({ userRole = 'GUEST' }: ChurchesViewProps) {
   // --- ESTADOS ---
   const [sectors, setSectors] = useState<ProcessedSector[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +34,13 @@ export default function ChurchesView() {
   
   // Controle de Modo (False = Ativos, True = Arquivo Morto)
   const [showArchived, setShowArchived] = useState(false);
+
+  // INJEÇÃO FUNCIONAL: REGRAS DE NEGÓCIO DA INTERFACE (UI)
+  const role = userRole as AdminRole;
+  // Apenas Master, Campo e Sede podem criar novos setores e ver arquivo morto global.
+  const canManageGlobal = ['MASTER', 'CAMPO', 'SEDE'].includes(role);
+  // Apenas Master, Campo, Sede e Setor podem criar novas igrejas dentro do seu escopo.
+  const canCreateChurch = ['MASTER', 'CAMPO', 'SEDE', 'SETOR'].includes(role);
 
   // --- BUSCA DE DADOS ---
   useEffect(() => {
@@ -113,6 +127,7 @@ export default function ChurchesView() {
           </h1>
           <p className="text-xs text-neutral-400">
             {showArchived ? "Histórico de registros desativados." : "Gestão hierárquica e filtros."}
+            <span className="text-emerald-500/70 font-bold ml-2">Acesso: {role}</span>
           </p>
         </div>
 
@@ -146,37 +161,43 @@ export default function ChurchesView() {
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
-            {/* BOTÃO ARQUIVO MORTO - AGORA SEMPRE VERMELHO (Conforme Solicitado) */}
-            <button
-                onClick={() => setShowArchived(!showArchived)}
-                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium transition-all border h-10 whitespace-nowrap
-                    bg-red-950/10 text-red-500 border-red-900/30 hover:bg-red-900/30 hover:text-red-400 hover:border-red-900/50
-                    ${showArchived ? "shadow-[0_0_15px_rgba(220,38,38,0.2)]" : ""} 
-                `}
-                title={showArchived ? "Voltar para Visão Operacional" : "Ver Arquivo Morto"}
-            >
-                {showArchived ? <RefreshCcw className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
-                {showArchived ? "Voltar para Ativos" : "Arquivo Morto"}
-            </button>
+            {/* INJEÇÃO FUNCIONAL: BOTÃO ARQUIVO MORTO ESCONDIDO PARA QUEM NÃO É GLOBAL */}
+            {canManageGlobal && (
+              <button
+                  onClick={() => setShowArchived(!showArchived)}
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-medium transition-all border h-10 whitespace-nowrap
+                      bg-red-950/10 text-red-500 border-red-900/30 hover:bg-red-900/30 hover:text-red-400 hover:border-red-900/50
+                      ${showArchived ? "shadow-[0_0_15px_rgba(220,38,38,0.2)]" : ""} 
+                  `}
+                  title={showArchived ? "Voltar para Visão Operacional" : "Ver Arquivo Morto"}
+              >
+                  {showArchived ? <RefreshCcw className="w-3.5 h-3.5" /> : <Archive className="w-3.5 h-3.5" />}
+                  {showArchived ? "Voltar para Ativos" : "Arquivo Morto"}
+              </button>
+            )}
 
-            {/* Botões de Ação (Só aparecem se NÃO estiver no arquivo morto) */}
+            {/* INJEÇÃO FUNCIONAL: Botões de Ação Protegidos pelo RLS visual */}
             {!showArchived && (
                 <>
-                    <Link 
-                    href="/dashboard/igrejas/setores/novo"
-                    className="flex items-center justify-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-4 py-2.5 rounded-lg text-xs font-medium transition-colors border border-neutral-700 h-10 whitespace-nowrap"
-                    >
-                    <Map className="w-3.5 h-3.5" />
-                    Novo Setor
-                    </Link>
+                    {canManageGlobal && (
+                      <Link 
+                      href="/dashboard/igrejas/setores/novo"
+                      className="flex items-center justify-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 px-4 py-2.5 rounded-lg text-xs font-medium transition-colors border border-neutral-700 h-10 whitespace-nowrap"
+                      >
+                      <Map className="w-3.5 h-3.5" />
+                      Novo Setor
+                      </Link>
+                    )}
 
-                    <Link 
-                    href="/dashboard/igrejas/nova"
-                    className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-emerald-900/20 h-10 whitespace-nowrap"
-                    >
-                    <Plus className="w-3.5 h-3.5" />
-                    Nova Igreja
-                    </Link>
+                    {canCreateChurch && (
+                      <Link 
+                      href="/dashboard/igrejas/nova"
+                      className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-lg text-xs font-medium transition-colors shadow-lg shadow-emerald-900/20 h-10 whitespace-nowrap"
+                      >
+                      <Plus className="w-3.5 h-3.5" />
+                      Nova Igreja
+                      </Link>
+                    )}
                 </>
             )}
         </div>
@@ -281,11 +302,20 @@ export default function ChurchesView() {
                                         className={`block group bg-neutral-900 border ${themeBorder} rounded-lg transition-all hover:shadow-lg hover:shadow-${themeAccent}-900/5 overflow-hidden`}
                                     >
                                         <div className="p-4 flex flex-col md:flex-row justify-between items-center gap-4">
-                                            <div className="flex-1 w-full md:w-auto text-center md:text-left">
+                                            <div className="flex-1 w-full md:w-auto text-center md:text-left flex flex-col">
+                                                <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                                                  {/* INJEÇÃO FUNCIONAL: Badges de Hierarquia */}
+                                                  {church.is_headquarters && (
+                                                    <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider shrink-0">Sede</span>
+                                                  )}
+                                                  {church.is_mother_church && (
+                                                    <span className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider shrink-0">Igreja Mãe</span>
+                                                  )}
+                                                </div>
                                                 <h3 className={`text-base font-bold ${showArchived ? 'text-neutral-400' : 'text-white group-hover:text-emerald-400'} transition-colors uppercase tracking-wide truncate`}>
                                                     {church.name}
                                                 </h3>
-                                                {showArchived && <span className="text-[10px] text-red-500 border border-red-900/30 px-2 py-0.5 rounded uppercase">Arquivada</span>}
+                                                {showArchived && <span className="text-[10px] text-red-500 border border-red-900/30 px-2 py-0.5 rounded uppercase mt-1 self-center md:self-start w-max">Arquivada</span>}
                                             </div>
 
                                             {!showArchived && (
@@ -334,7 +364,8 @@ export default function ChurchesView() {
                                 );
                             })}
                             
-                            {!showArchived && (
+                            {/* INJEÇÃO FUNCIONAL: Card tracejado protegido por RLS visual */}
+                            {!showArchived && canCreateChurch && (
                                 <Link
                                     href={`/dashboard/igrejas/nova?setor=${sector.id}`}
                                     className="border border-dashed border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800/30 rounded-lg p-4 flex flex-col items-center justify-center gap-2 text-neutral-500 hover:text-white transition-all min-h-[120px]"

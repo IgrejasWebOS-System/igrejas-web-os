@@ -11,20 +11,26 @@ export async function createChurchAction(formData: FormData) {
   // INJEÇÃO FUNCIONAL: Lendo a origem do Roteamento com Estado
   const origem = formData.get("origem") as string;
 
-  // 1. Captura os dados
+  // 1. Captura os dados originais e compatibiliza cep/zip_code
   const name = formData.get("name") as string;
   const sector_id = formData.get("sector_id") as string;
   const city = formData.get("city") as string;
   const state = formData.get("state") as string;
   const neighborhood = formData.get("neighborhood") as string;
-  const zip_code = formData.get("zip_code") as string;
+  const zip_code = (formData.get("zip_code") as string) || (formData.get("cep") as string);
+
+  // INJEÇÃO FUNCIONAL: Captura dos novos campos de localização e liderança
+  const address = formData.get("address") as string;
+  const pastor_name = formData.get("pastor_name") as string;
+  const pastor_phone = formData.get("pastor_phone") as string;
+  const church_phone = formData.get("church_phone") as string;
 
   // 2. Validação
   if (!name || !sector_id) {
     return { success: false, message: "Nome e Setor são obrigatórios." };
   }
 
-  // 3. Insert
+  // 3. Insert Fundido (Estrutura Antiga + Novos Campos)
   const { error } = await supabase
     .from("churches")
     .insert({
@@ -34,6 +40,12 @@ export async function createChurchAction(formData: FormData) {
       state: state || null,
       neighborhood: neighborhood || null,
       zip_code: zip_code || null,
+      // Injeção dos novos campos
+      address: address || null,
+      pastor_name: pastor_name || null,
+      pastor_phone: pastor_phone || null,
+      church_phone: church_phone || null,
+      // Controles estruturais validados
       status: 'ACTIVE', 
       created_at: new Date().toISOString(),
     });
@@ -60,19 +72,25 @@ export async function updateChurchAction(formData: FormData) {
   // 1. Captura o ID (Vital para update)
   const id = formData.get("id") as string;
   
-  // 2. Captura os dados atualizáveis
+  // 2. Captura os dados originais
   const name = formData.get("name") as string;
   const sector_id = formData.get("sector_id") as string;
   const city = formData.get("city") as string;
   const state = formData.get("state") as string;
   const neighborhood = formData.get("neighborhood") as string;
-  const zip_code = formData.get("zip_code") as string;
+  const zip_code = (formData.get("zip_code") as string) || (formData.get("cep") as string);
+
+  // INJEÇÃO FUNCIONAL: Captura dos novos campos para permitir edição futura
+  const address = formData.get("address") as string;
+  const pastor_name = formData.get("pastor_name") as string;
+  const pastor_phone = formData.get("pastor_phone") as string;
+  const church_phone = formData.get("church_phone") as string;
 
   if (!id || !name || !sector_id) {
     return { success: false, message: "ID, Nome e Setor são obrigatórios." };
   }
 
-  // 3. Update no Banco
+  // 3. Update no Banco com a injeção dos novos campos
   const { error } = await supabase
     .from("churches")
     .update({
@@ -82,9 +100,15 @@ export async function updateChurchAction(formData: FormData) {
       state: state || null,
       neighborhood: neighborhood || null,
       zip_code: zip_code || null,
-      updated_at: new Date().toISOString(), // Boa prática: marcar quando mudou
+      // Injeção dos novos campos
+      address: address || null,
+      pastor_name: pastor_name || null,
+      pastor_phone: pastor_phone || null,
+      church_phone: church_phone || null,
+      // Boa prática: marcar quando mudou
+      updated_at: new Date().toISOString(), 
     })
-    .eq("id", id); // Onde o ID for igual ao ID do form
+    .eq("id", id);
 
   if (error) {
     console.error("Erro ao atualizar igreja:", error);
@@ -95,11 +119,10 @@ export async function updateChurchAction(formData: FormData) {
   redirect("/dashboard/igrejas");
 }
 
-// --- AÇÃO 3: CRIAR NOVO SETOR ---
+// --- AÇÃO 3: CRIAR NOVO SETOR (MANTIDO INTACTO) ---
 export async function createSectorAction(formData: FormData) {
   const supabase = await createClient();
 
-  // INJEÇÃO FUNCIONAL: Lendo a origem do Roteamento com Estado (Para Setores)
   const origem = formData.get("origem") as string;
   const name = formData.get("name") as string;
 
@@ -122,7 +145,6 @@ export async function createSectorAction(formData: FormData) {
 
   revalidatePath("/dashboard/igrejas");
   
-  // INJEÇÃO FUNCIONAL: Bifurcação dinâmica para setores
   if (origem === 'configuracoes') {
       redirect("/dashboard/configuracoes");
   } else {
@@ -130,7 +152,7 @@ export async function createSectorAction(formData: FormData) {
   }
 }
 
-// --- AÇÃO 4: ARQUIVAR IGREJA (SOFT DELETE) ---
+// --- AÇÃO 4: ARQUIVAR IGREJA (SOFT DELETE) (MANTIDO INTACTO) ---
 export async function archiveChurchAction(formData: FormData) {
   const supabase = await createClient();
 
