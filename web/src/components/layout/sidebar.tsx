@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { 
   Home, 
   Users, 
@@ -17,7 +17,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { cn } from "@/utils/cn";
-import { createClient } from "@/utils/supabase/client";
+import { logout } from "@/app/actions"; // Injeção Funcional: Motor de Saída Segura
 
 // Tipagem estrita para suportar menus com e sem sub-itens
 type MenuItem = {
@@ -49,20 +49,12 @@ const menuItems: MenuItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const supabase = createClient();
   
   // Controle de estado para menus colapsáveis (Dropdown)
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
 
   const toggleMenu = (menuLabel: string) => {
     setOpenMenus((prev) => ({ ...prev, [menuLabel]: !prev[menuLabel] }));
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
   };
 
   return (
@@ -155,15 +147,17 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* FOOTER / USER - MANTIDO INTACTO DO ARQUIVO ORIGINAL */}
+      {/* FOOTER / USER - MOTOR DE SAÍDA SEGURA (INJEÇÃO) */}
       <div className="p-4 border-t border-neutral-800 flex-shrink-0 bg-neutral-900 sticky bottom-0 z-10">
-        <button 
-          onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors cursor-pointer"
-        >
-          <LogOut className="w-5 h-5" />
-          Sair do Sistema
-        </button>
+        <form action={logout} className="w-full">
+          <button 
+            type="submit"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors cursor-pointer"
+          >
+            <LogOut className="w-5 h-5" />
+            Sair do Sistema
+          </button>
+        </form>
       </div>
     </aside>
   );
