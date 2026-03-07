@@ -14,10 +14,21 @@ import {
   LayoutDashboard, 
   Settings, 
   LogOut,
-  ChevronDown
+  ChevronDown,
+  ShieldCheck
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { logout } from "@/app/actions"; // Injeção Funcional: Motor de Saída Segura
+
+// Mapeamento de Cores e Nomes das Patentes (RBAC Enterprise)
+const ROLE_MAP: Record<string, { label: string; color: string; border: string; bg: string }> = {
+  SUPER_ADMIN: { label: "Super Admin", color: "text-purple-400", border: "border-purple-500/30", bg: "bg-purple-500/10" },
+  CAMPO: { label: "Master Campo", color: "text-emerald-400", border: "border-emerald-500/30", bg: "bg-emerald-500/10" },
+  SEDE: { label: "Sede Regional", color: "text-blue-400", border: "border-blue-500/30", bg: "bg-blue-500/10" },
+  SETOR_ADMIN: { label: "Admin Setor", color: "text-cyan-400", border: "border-cyan-500/30", bg: "bg-cyan-500/10" },
+  IGREJA_USER: { label: "Igreja Local", color: "text-neutral-300", border: "border-neutral-500/30", bg: "bg-neutral-800/50" },
+  GUEST: { label: "Visitante", color: "text-red-400", border: "border-red-500/30", bg: "bg-red-500/10" },
+};
 
 // Tipagem estrita para suportar menus com e sem sub-itens
 type MenuItem = {
@@ -47,7 +58,8 @@ const menuItems: MenuItem[] = [
   { icon: Settings, label: "Configurações", href: "/dashboard/configuracoes" },
 ];
 
-export function Sidebar() {
+// Injeção Funcional: Sidebar agora recebe propriedades do Layout
+export function Sidebar({ userEmail = "Usuário", userRole = "GUEST" }: { userEmail?: string, userRole?: string }) {
   const pathname = usePathname();
   
   // Controle de estado para menus colapsáveis (Dropdown)
@@ -56,6 +68,9 @@ export function Sidebar() {
   const toggleMenu = (menuLabel: string) => {
     setOpenMenus((prev) => ({ ...prev, [menuLabel]: !prev[menuLabel] }));
   };
+
+  // Garante que a patente tenha sempre um estilo (Fallback)
+  const roleData = ROLE_MAP[userRole] || ROLE_MAP.GUEST;
 
   return (
     <aside className="w-64 bg-neutral-900 border-r border-neutral-800 hidden md:flex flex-col h-screen fixed left-0 top-0 z-40 overflow-y-auto custom-scrollbar">
@@ -147,17 +162,36 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* FOOTER / USER - MOTOR DE SAÍDA SEGURA (INJEÇÃO) */}
-      <div className="p-4 border-t border-neutral-800 flex-shrink-0 bg-neutral-900 sticky bottom-0 z-10">
-        <form action={logout} className="w-full">
-          <button 
-            type="submit"
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors cursor-pointer"
-          >
-            <LogOut className="w-5 h-5" />
-            Sair do Sistema
-          </button>
-        </form>
+      {/* FOOTER: RBAC PROFILE + LOGOUT (Preservando a docagem original) */}
+      <div className="border-t border-neutral-800 flex-shrink-0 bg-neutral-900 sticky bottom-0 z-10 flex flex-col">
+        
+        {/* BLOCO DE IDENTIDADE (RBAC) */}
+        <div className="p-4 border-b border-neutral-800/50 flex flex-col gap-2">
+          <div className="flex items-center justify-between w-full">
+            <span className="text-xs font-bold text-white truncate w-full" title={userEmail}>
+              {userEmail}
+            </span>
+          </div>
+          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${roleData.bg} ${roleData.border} w-fit`}>
+            <ShieldCheck className={`w-3 h-3 flex-shrink-0 ${roleData.color}`} />
+            <span className={`text-[9px] font-black uppercase tracking-widest ${roleData.color}`}>
+              {roleData.label}
+            </span>
+          </div>
+        </div>
+
+        {/* MOTOR DE SAÍDA SEGURA */}
+        <div className="p-4">
+          <form action={logout} className="w-full">
+            <button 
+              type="submit"
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors cursor-pointer"
+            >
+              <LogOut className="w-5 h-5" />
+              Sair do Sistema
+            </button>
+          </form>
+        </div>
       </div>
     </aside>
   );

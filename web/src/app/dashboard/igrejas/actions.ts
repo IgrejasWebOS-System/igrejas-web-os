@@ -24,13 +24,18 @@ export async function createChurchAction(formData: FormData) {
   const pastor_name = formData.get("pastor_name") as string;
   const pastor_phone = formData.get("pastor_phone") as string;
   const church_phone = formData.get("church_phone") as string;
+  
+  // 🔥 INJEÇÃO ESTRUTURAL (Enterprise): Captura das novas colunas do Tópico 1
+  const address_number = formData.get("address_number") as string;
+  const address_complement = formData.get("address_complement") as string;
+  const pastor_matricula = formData.get("pastor_matricula") as string;
 
   // 2. Validação
   if (!name || !sector_id) {
     return { success: false, message: "Nome e Setor são obrigatórios." };
   }
 
-  // 3. Insert Fundido (Estrutura Antiga + Novos Campos)
+  // 3. Insert Fundido (Estrutura Antiga + Novos Campos da Migração)
   const { error } = await supabase
     .from("churches")
     .insert({
@@ -40,11 +45,15 @@ export async function createChurchAction(formData: FormData) {
       state: state || null,
       neighborhood: neighborhood || null,
       zip_code: zip_code || null,
-      // Injeção dos novos campos
+      // Injeção dos campos anteriores
       address: address || null,
       pastor_name: pastor_name || null,
       pastor_phone: pastor_phone || null,
       church_phone: church_phone || null,
+      // 🔥 Injeção Estrutural das Novas Colunas
+      address_number: address_number || null,
+      address_complement: address_complement || null,
+      pastor_matricula: pastor_matricula || null,
       // Controles estruturais validados
       status: 'ACTIVE', 
       created_at: new Date().toISOString(),
@@ -65,7 +74,7 @@ export async function createChurchAction(formData: FormData) {
   }
 }
 
-// --- AÇÃO 2: ATUALIZAR IGREJA (NOVA ROTINA) ---
+// --- AÇÃO 2: ATUALIZAR IGREJA ---
 export async function updateChurchAction(formData: FormData) {
   const supabase = await createClient();
 
@@ -80,11 +89,16 @@ export async function updateChurchAction(formData: FormData) {
   const neighborhood = formData.get("neighborhood") as string;
   const zip_code = (formData.get("zip_code") as string) || (formData.get("cep") as string);
 
-  // INJEÇÃO FUNCIONAL: Captura dos novos campos para permitir edição futura
+  // INJEÇÃO FUNCIONAL: Captura dos campos de localização e liderança
   const address = formData.get("address") as string;
   const pastor_name = formData.get("pastor_name") as string;
   const pastor_phone = formData.get("pastor_phone") as string;
   const church_phone = formData.get("church_phone") as string;
+
+  // 🔥 INJEÇÃO ESTRUTURAL (Enterprise): Captura das novas colunas para permitir edição futura
+  const address_number = formData.get("address_number") as string;
+  const address_complement = formData.get("address_complement") as string;
+  const pastor_matricula = formData.get("pastor_matricula") as string;
 
   if (!id || !name || !sector_id) {
     return { success: false, message: "ID, Nome e Setor são obrigatórios." };
@@ -100,11 +114,15 @@ export async function updateChurchAction(formData: FormData) {
       state: state || null,
       neighborhood: neighborhood || null,
       zip_code: zip_code || null,
-      // Injeção dos novos campos
+      // Injeção dos campos anteriores
       address: address || null,
       pastor_name: pastor_name || null,
       pastor_phone: pastor_phone || null,
       church_phone: church_phone || null,
+      // 🔥 Injeção Estrutural das Novas Colunas
+      address_number: address_number || null,
+      address_complement: address_complement || null,
+      pastor_matricula: pastor_matricula || null,
       // Boa prática: marcar quando mudou
       updated_at: new Date().toISOString(), 
     })
